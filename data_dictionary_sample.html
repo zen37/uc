@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Data Dictionary</title>
+<style>
+  :root {
+    --bg: #f7f8fa; --card: #ffffff; --ink: #1a2028; --muted: #5b6673;
+    --line: #e4e8ee; --accent: #2557d6; --accent-soft: #eaf0ff;
+    --chip: #eef1f5; --hit: #fff3ba; --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  header {
+    background: var(--card); border-bottom: 1px solid var(--line);
+    padding: 22px 28px 18px; position: sticky; top: 0; z-index: 10;
+  }
+  h1 { margin: 0 0 3px; font-size: 21px; letter-spacing: -0.01em; }
+  .subtitle { color: var(--muted); font-size: 14px; margin-bottom: 14px; }
+  .searchbar { position: relative; max-width: 640px; }
+  #q {
+    width: 100%; padding: 11px 14px 11px 38px; font-size: 15px;
+    border: 1px solid var(--line); border-radius: 9px; background: #fff; color: var(--ink);
+    outline: none;
+  }
+  #q:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .searchbar svg { position: absolute; left: 12px; top: 12px; color: var(--muted); }
+  .meta { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 12px; color: var(--muted); font-size: 13px; }
+  .meta b { color: var(--ink); }
+  main { max-width: 980px; margin: 0 auto; padding: 20px 28px 80px; }
+  .catalog { margin-bottom: 26px; }
+  .catalog > h2 {
+    font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--muted); margin: 0 0 8px; font-weight: 700;
+  }
+  .schema { margin: 0 0 14px; }
+  .schema-name { font-weight: 600; font-size: 14px; color: var(--ink); margin: 12px 0 6px; }
+  .schema-name .path { color: var(--muted); font-weight: 400; font-family: var(--mono); font-size: 12px; }
+  details.table {
+    background: var(--card); border: 1px solid var(--line); border-radius: 9px;
+    margin-bottom: 7px; overflow: hidden;
+  }
+  details.table > summary {
+    cursor: pointer; padding: 11px 14px; list-style: none; display: flex;
+    align-items: baseline; gap: 10px; user-select: none;
+  }
+  details.table > summary::-webkit-details-marker { display: none; }
+  .tw { transition: transform .15s; color: var(--muted); font-size: 11px; }
+  details[open] .tw { transform: rotate(90deg); }
+  .tname { font-family: var(--mono); font-weight: 600; font-size: 14px; }
+  .ttype {
+    font-size: 11px; background: var(--chip); color: var(--muted);
+    padding: 1px 7px; border-radius: 20px; text-transform: lowercase;
+  }
+  .tcomment { color: var(--muted); font-size: 13px; margin-left: auto; text-align: right; max-width: 45%; }
+  .cols { border-top: 1px solid var(--line); padding: 4px 0; }
+  .col { display: flex; gap: 12px; padding: 6px 16px 6px 34px; align-items: baseline; }
+  .col:not(:last-child) { border-bottom: 1px solid #f2f4f7; }
+  .cname { font-family: var(--mono); font-size: 13px; min-width: 180px; }
+  .ctype { font-family: var(--mono); font-size: 12px; color: var(--accent); min-width: 130px; }
+  .ccomment { color: var(--muted); font-size: 13px; }
+  mark { background: var(--hit); border-radius: 2px; padding: 0 1px; }
+  .empty { color: var(--muted); font-style: italic; padding: 40px 0; text-align: center; }
+  .count { color: var(--muted); font-weight: 400; font-size: 12px; }
+  footer { color: var(--muted); font-size: 12px; text-align: center; padding: 20px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Data Dictionary</h1>
+  <div class="subtitle">What data exists — search to find what to ask for.</div>
+  <div class="searchbar">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+    <input id="q" type="search" placeholder="Search tables, columns, descriptions…" autocomplete="off" autofocus>
+  </div>
+  <div class="meta">
+    <span><b>2</b> catalogs</span>
+    <span><b>3</b> schemas</span>
+    <span><b>7</b> tables</span>
+    <span><b>21</b> columns</span>
+    <span id="resultcount"></span>
+  </div>
+</header>
+<main id="out"></main>
+<footer>Metadata only — no data values. Generated 2026-08-31 09:07 UTC.</footer>
+
+<script>
+const DATA = [{"name": "analytics", "schemas": [{"name": "finance", "tables": [{"name": "invoice_line", "type": "Managed", "comment": "", "columns": [{"name": "invoice_id", "type": "STRING", "comment": ""}, {"name": "amount_eur", "type": "DECIMAL(18,2)", "comment": "Line amount."}]}, {"name": "project_cost_monthly", "type": "Managed", "comment": "Monthly project cost roll-up for civil works.", "columns": [{"name": "project_id", "type": "STRING", "comment": "Project identifier."}, {"name": "month", "type": "DATE", "comment": ""}, {"name": "cost_eur", "type": "DECIMAL(18,2)", "comment": "Total cost in EUR."}]}]}]}, {"name": "gold", "schemas": [{"name": "hydrology", "tables": [{"name": "rainfall_hourly", "type": "Managed", "comment": "Hourly rainfall totals by catchment area.", "columns": [{"name": "catchment_id", "type": "STRING", "comment": "FK to catchment_area."}, {"name": "observed_at", "type": "TIMESTAMP", "comment": "Hour of observation (UTC)."}, {"name": "rainfall_mm", "type": "DOUBLE", "comment": "Total rainfall in millimetres."}]}, {"name": "station_daily_flow", "type": "Managed", "comment": "Daily aggregated river flow per gauging station (m³/s).", "columns": [{"name": "station_id", "type": "STRING", "comment": "FK to gauging_station."}, {"name": "flow_date", "type": "DATE", "comment": "Observation date."}, {"name": "mean_flow_m3s", "type": "DOUBLE", "comment": "Mean daily discharge in cubic metres per second."}, {"name": "peak_flow_m3s", "type": "DOUBLE", "comment": "Peak daily discharge."}]}, {"name": "v_flood_risk_summary", "type": "View", "comment": "Curated flood-risk indicators per station, current season.", "columns": [{"name": "station_id", "type": "STRING", "comment": ""}, {"name": "risk_level", "type": "STRING", "comment": "Low / Medium / High flood risk classification."}]}]}, {"name": "reference", "tables": [{"name": "catchment_area", "type": "Managed", "comment": "Catchment boundaries and drainage metadata.", "columns": [{"name": "catchment_id", "type": "STRING", "comment": "Primary key."}, {"name": "area_km2", "type": "DOUBLE", "comment": "Catchment surface area."}]}, {"name": "gauging_station", "type": "Managed", "comment": "Master list of gauging stations with coordinates and operator.", "columns": [{"name": "station_id", "type": "STRING", "comment": "Primary key."}, {"name": "name", "type": "STRING", "comment": "Station display name."}, {"name": "latitude", "type": "DOUBLE", "comment": ""}, {"name": "longitude", "type": "DOUBLE", "comment": ""}, {"name": "operator", "type": "STRING", "comment": "Operating authority."}]}]}]}];
+
+const out = document.getElementById('out');
+const q = document.getElementById('q');
+const resultcount = document.getElementById('resultcount');
+
+function esc(s) {
+  return (s || '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+}
+function hl(text, term) {
+  const t = esc(text);
+  if (!term) return t;
+  const i = t.toLowerCase().indexOf(term);
+  if (i === -1) return t;
+  return t.slice(0, i) + '<mark>' + t.slice(i, i + term.length) + '</mark>' + t.slice(i + term.length);
+}
+
+function tableMatches(tbl, term) {
+  if (tbl.name.toLowerCase().includes(term)) return 'table';
+  if ((tbl.comment || '').toLowerCase().includes(term)) return 'table';
+  for (const c of tbl.columns) {
+    if (c.name.toLowerCase().includes(term) || (c.comment || '').toLowerCase().includes(term)) return 'column';
+  }
+  return null;
+}
+
+function render(term) {
+  term = (term || '').trim().toLowerCase();
+  out.innerHTML = '';
+  let shownTables = 0;
+
+  for (const cat of DATA) {
+    const catSchemas = [];
+    for (const sch of cat.schemas) {
+      const matchTables = [];
+      for (const tbl of sch.tables) {
+        if (!term) { matchTables.push({tbl, why: null}); continue; }
+        const why = tableMatches(tbl, term);
+        if (why) matchTables.push({tbl, why});
+      }
+      if (matchTables.length) catSchemas.push({sch, matchTables});
+    }
+    if (!catSchemas.length) continue;
+
+    const catEl = document.createElement('div');
+    catEl.className = 'catalog';
+    catEl.innerHTML = '<h2>' + esc(cat.name) + '</h2>';
+
+    for (const {sch, matchTables} of catSchemas) {
+      const schEl = document.createElement('div');
+      schEl.className = 'schema';
+      schEl.innerHTML = '<div class="schema-name">' + esc(sch.name) +
+        ' <span class="path">' + esc(cat.name) + '.' + esc(sch.name) + '</span>' +
+        ' <span class="count">· ' + matchTables.length + ' table' + (matchTables.length===1?'':'s') + '</span></div>';
+
+      for (const {tbl, why} of matchTables) {
+        shownTables++;
+        const det = document.createElement('details');
+        det.className = 'table';
+        if (term && why === 'column') det.open = true;
+
+        const colMatch = term ? tbl.columns.filter(c =>
+          c.name.toLowerCase().includes(term) || (c.comment||'').toLowerCase().includes(term)) : [];
+
+        det.innerHTML =
+          '<summary>' +
+            '<span class="tw">▶</span>' +
+            '<span class="tname">' + hl(tbl.name, term) + '</span>' +
+            (tbl.type ? '<span class="ttype">' + esc(tbl.type.replace(/_/g,' ')) + '</span>' : '') +
+            (tbl.comment ? '<span class="tcomment">' + hl(tbl.comment, term) + '</span>' : '') +
+          '</summary>' +
+          '<div class="cols">' +
+            tbl.columns.map(c => {
+              const isHit = term && (c.name.toLowerCase().includes(term) || (c.comment||'').toLowerCase().includes(term));
+              return '<div class="col"' + (isHit ? ' style="background:#fffdf0"' : '') + '>' +
+                '<span class="cname">' + hl(c.name, term) + '</span>' +
+                '<span class="ctype">' + esc(c.type) + '</span>' +
+                '<span class="ccomment">' + hl(c.comment, term) + '</span>' +
+              '</div>';
+            }).join('') +
+          '</div>';
+        schEl.appendChild(det);
+      }
+      catEl.appendChild(schEl);
+    }
+    out.appendChild(catEl);
+  }
+
+  if (shownTables === 0) {
+    out.innerHTML = '<div class="empty">No tables or columns match &ldquo;' + esc(term) + '&rdquo;.</div>';
+    resultcount.innerHTML = '';
+  } else {
+    resultcount.innerHTML = term ? ('<b>' + shownTables + '</b> matching tables') : '';
+  }
+}
+
+let timer;
+q.addEventListener('input', () => {
+  clearTimeout(timer);
+  timer = setTimeout(() => render(q.value), 120);
+});
+render('');
+</script>
+</body>
+</html>
